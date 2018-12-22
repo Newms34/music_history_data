@@ -2,7 +2,10 @@
 	display:block;
 	background:#fff;
 }
-
+html{
+	height:110vh;
+	width:110vw;
+}
 body{
 	background:url('https://lorempixel.com/1500/1500/nightlife');
 	background-attachment:fixed;
