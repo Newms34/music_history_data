@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Song Freq App</title>
+    <link rel="stylesheet" href="https://rawgit.com/jtblin/angular-chart.js/a0b1ce650d5dce9b7ccdd86843d83f27b0d7bc03/dist/angular-chart.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="./css/style.css">
+</head>
+
+<body ng-app='musStatApp' ng-controller='musCtrl'>
+    <div class="is-full">
+        <button class="button is-info is-large is-pulled-right" ng-click='explaining=true;'><i class="fa fa-question-circle"></i></button>
+    </div>
+    <div class="is-full columns">
+        <div class="column is-one-fifth"></div>
+        <div class="column is-three-fifths panel">
+            <div class="panel-heading is-size-4 has-text-weight-bold has-text-centered has-background-dark has-text-white">Parameters</div>
+            <div class="panel-block blocky">
+              <div class='columns is-multiline'>
+                <div class="column is-full"></div>
+                <div class="column is-one-fifth is-size-5 notification col-style-two">End Date:</div>
+                <div class="column is-four-fifths">
+                    <p class="control">
+                        <input type="date" ng-model='start' onchange='angular.element(document.querySelector("body")).scope().musParams.date=new Date(this.value)'> (If not defined, we'll just use the current date)
+                    </p>
+                </div>
+                <div class="column is-one-fifth is-size-5 notification col-style-two">Time Between Reads (years):</div>
+                <div class="column is-four-fifths">
+                    <p class="control">
+                        <input type="number" ng-model='musParams.timedelta'>
+                    </p>
+                </div>
+                <div class="column is-one-fifth is-size-5 notification col-style-two">Total Number of Reads:</div>
+                <div class="column is-four-fifths">
+                    <p class="control">
+                        <input type="number" ng-model='musParams.totalreads'>
+                    </p>
+                </div>
+                <div class="is-full has-text-centered">
+                    <button class="button is-link is-large" ng-click='getSongData()'><i class="fa fa-music"></i>&nbsp;Get Music Data</button>
+                </div>
+              </div>
+            </div>
+        </div>
+    </div>
+    <canvas id="line" class="chart chart-line" chart-data="chartStuff.data" chart-labels="chartStuff.labels" chart-options="chartStuff.options" chart-series="chartStuff.series" chart-colors="chartStuff.colors">
+    </canvas>
+    <div class="modal" ng-class='{"is-active":explaining}'>
+        <!-- the modal view-student-exercise window -->
+        <div class="modal-background" ng-click='explaining=false'></div>
+        <div class="modal-content">
+            <div class="panel">
+                <div class="panel-heading col-style-one">
+                    Explanation
+                </div>
+                <div class="panel-block has-background-white blocky ">
+                    <div class="is-full">
+                        This graph shows the prevalence of the top 20 tags on Last.FM, a music service that, among other stuff, allows you to tag music with particular categorical tags. <br>
+                    </div>
+                    <button class="button is-info" ng-click='explaining=false'>Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-chart.js/1.1.1/angular-chart.min.js"></script>
+    <script src="./js/main.js"></script>
+</body>
+
+</html>
