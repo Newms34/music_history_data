@@ -53,12 +53,40 @@
         <div class="modal-background" ng-click='explaining=false'></div>
         <div class="modal-content">
             <div class="panel">
-                <div class="panel-heading col-style-one">
+                <div class="panel-heading col-style-one has-background-dark has-text-white has-text-weight-bold">
                     Explanation
                 </div>
                 <div class="panel-block has-background-white blocky ">
-                    <div class="is-full">
-                        This graph shows the prevalence of the top 20 tags on Last.FM, a music service that, among other stuff, allows you to tag music with particular categorical tags. <br>
+                    <div class="is-full content">
+                      <div class="notification ">
+                        <strong>Explanation:</strong><br>
+                        This app is designed to show the most popular music 'tags' over time used by Last.FM™ for categorizing its music. <br>
+                        Note: for the purposes of this app, we're defining a <i>read</i> as a single reading of the Billboard Hot 100™ at a specific date
+                        <br>
+                      </div>
+                      <div class="notification ">
+                        <strong>Data Sources:</strong><br>
+                        There are two data sources in use here:
+                        <ol>
+                          <li>Firstly, we get a list of the most popular artists for each "read" in a defined time range.</li>
+                          <li>Secondly, we use Last.FM™'s API to get the most popular tags used to categorize each artist's music.</li>
+                        </ol>
+                        <br>
+                      </div>
+                      <div class="notification ">
+                        <strong>Graph Generation:</strong><br>
+                        After we've gotten the above data, we combine the two sources by totalling the count of each tag at each "read". This is then graphed to show the popularity of specific tags over time.
+                        <br>
+                      </div>
+                      <div class="notification ">
+                        <strong>Issues:</strong><br>
+                        <ul>
+                          <li>Because of the rather large amount of data involved (potentially), this can take a while. Be patient, and please don't spam the app!</li>
+                          <li>The tags from Last.FM are user-created/submitted. So while popularity should <i>help</i> to rule out any useless tags. So while the tag "your ears will bleed" <i>does</i> exist, it won't likely be included as it has a very low popularity.</li>
+                          <li>It <i>seems</i> that the Billboard Hot 100™ only goes back to 1958. Any dates before then will just generate a flat line.</li>
+                        </ul>
+                        <br>
+                      </div>
                     </div>
                     <button class="button is-info" ng-click='explaining=false'>Got it!</button>
                 </div>

@@ -15,6 +15,12 @@ let startDate = new Date(2016, 12, 1),
 String.prototype.normalize = function() {
     return this.toLowerCase().trim();
 }
+if(fs.existsSync('./keys.json')){
+	// console.log('keys exists!',fs.readFileSync('./keys.json','utf-8'))
+	let lfm = JSON.parse(fs.readFileSync('./keys.json','utf8')).lastfm;
+}else{
+	lfm = process.env.LFM
+}
 
 const doSongAnalysis = (sd, tid, tnr) => {
     startDate = !!sd && sd instanceof Date ? sd : startDate;
@@ -77,7 +83,7 @@ const getTags = dts => {
         // console.log('ALL ARTISTS', totalArtists)
         totalArtists.forEach(at => {
             let theArt = at,
-                theUrl = `http://ws.audioscrobbler.com/2.0/?method=artist.gettoptags&artist=${encodeURIComponent(at)}&api_key=64bcd5b83e4aa654231208ce74bea970&format=json&autocorrect=1`;
+                theUrl = `http://ws.audioscrobbler.com/2.0/?method=artist.gettoptags&artist=${encodeURIComponent(at)}&api_key=${lfm}&format=json&autocorrect=1`;
             request.get(theUrl, (err, resp) => {
                 let newArtObj = {
                     artist: theArt,
@@ -187,7 +193,7 @@ at this point, we have 'atg', which is a single tag for an artist
             thisTagPopList.unshift(ad);
             tagPop.push(thisTagPopList)
         })
-        fs.writeFileSync('out.json', JSON.stringify(ogDateList) + '\n\n' + JSON.stringify(dateList) + '\n\n' + JSON.stringify(tagPop), 'utf-8')
+        // fs.writeFileSync('out.json', JSON.stringify(ogDateList) + '\n\n' + JSON.stringify(dateList) + '\n\n' + JSON.stringify(tagPop), 'utf-8')
         // allTags.unshift({ name: 'Date' })
         // makeChart(allTags, tagPop);
         console.log('DONE! Resolving')
