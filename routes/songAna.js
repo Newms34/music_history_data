@@ -11,22 +11,25 @@ let startDate = new Date(2016, 12, 1),
     timeDelta = 1000 * 3600 * 24 * 365.25 * 2.5, //our time duration
     totalNumReads = 20,
     totalDates = 0,
-    fullProm = null;
+    fullProm = null, lfm=null;
+    io=null;
 String.prototype.normalize = function() {
     return this.toLowerCase().trim();
 }
 if(fs.existsSync('./keys.json')){
 	// console.log('keys exists!',fs.readFileSync('./keys.json','utf-8'))
-	let lfm = JSON.parse(fs.readFileSync('./keys.json','utf8')).lastfm;
+	lfm = JSON.parse(fs.readFileSync('./keys.json','utf8')).lastfm;
 }else{
 	lfm = process.env.LFM
 }
 
-const doSongAnalysis = (sd, tid, tnr) => {
+const doSongAnalysis = (ioi, sd, tid, tnr) => {
+	io = ioi;
     startDate = !!sd && sd instanceof Date ? sd : startDate;
     timeDelta = tid && !isNaN(tid) ? tid*oneYear : timeDelta;
     totalNumReads = tnr && !isNaN(tnr) ? tnr : totalNumReads;
     console.log('BEGINNING SONG ANALYSIS', typeof startDate, startDate instanceof Date, startDate, timeDelta, totalNumReads, sd, tid, tnr)
+    io.emit('beginSA',{})
     fullProm = Deferred();
     for (let i = 0; i < totalNumReads; i++) {
         let currDate = new Date(startDate - (i * timeDelta)),
@@ -47,7 +50,7 @@ const doSongAnalysis = (sd, tid, tnr) => {
             gotData: false
         })
     }
-    console.log('DATES',dates)
+    // console.log('DATES',dates)
     totalDates = dates.length;
     dates.forEach(dt => {
         let theDate = dt.date;
@@ -69,7 +72,8 @@ const doSongAnalysis = (sd, tid, tnr) => {
                 });
             }
             if (dates.filter(t => !!t.gotData).length == dates.length) {
-                console.log('Got songs! Time to get tags!')
+                // console.log('Got songs! Time to get tags!')
+                io.emit('tagsSA',{})
                 getTags(dates);
             }
         })
@@ -100,7 +104,8 @@ const getTags = dts => {
                 if (artistTags.length == totalArtists.length) {
                     // fs.writeFileSync('out.json',JSON.stringify(artistTags),'utf-8')
                     // got all our doots!
-                    console.log('got tags! time to sort')
+                    io.emit('sortSA',{})
+                    // console.log('got tags! time to sort')
                     sortTags(dts, artistTags);
                 }
             })
@@ -197,6 +202,7 @@ at this point, we have 'atg', which is a single tag for an artist
         // allTags.unshift({ name: 'Date' })
         // makeChart(allTags, tagPop);
         console.log('DONE! Resolving')
+        io.emit('organizeSA',{})
         const musData = {};
         allTags.forEach((tg,i)=>{
         	//DATA: need one subarray per tag, NOT one subarray per date

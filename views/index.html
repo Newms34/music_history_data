@@ -40,13 +40,15 @@
                     </p>
                 </div>
                 <div class="is-full has-text-centered">
-                    <button class="button is-link is-large" ng-click='getSongData()'><i class="fa fa-music"></i>&nbsp;Get Music Data</button>
+                    <button class="button is-link is-large" ng-show='!musParams.status' ng-click='getSongData()'><i class="fa fa-music"></i>&nbsp;Get Music Data</button>
+                    <div class="notification is-full" ng-show='musParams.status'>{{musParams.status}}</div>
                 </div>
+                <br>
               </div>
             </div>
         </div>
     </div>
-    <canvas id="line" class="chart chart-line" chart-data="chartStuff.data" chart-labels="chartStuff.labels" chart-options="chartStuff.options" chart-series="chartStuff.series" chart-colors="chartStuff.colors">
+    <canvas id="line" class="chart chart-line" chart-data="chartStuff.data" chart-labels="chartStuff.labels" chart-options="chartStuff.options" chart-series="chartStuff.series" chart-colors="chartStuff.colors" ng-show='chartStuff.data'>
     </canvas>
     <div class="modal" ng-class='{"is-active":explaining}'>
         <!-- the modal view-student-exercise window -->
@@ -93,6 +95,7 @@
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-chart.js/1.1.1/angular-chart.min.js"></script>

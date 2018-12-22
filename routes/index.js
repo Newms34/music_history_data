@@ -20,7 +20,7 @@ module.exports = function(io) {
     	if(req.query.start && !isNaN(new Date(req.query.start).getTime())){
     		sd = new Date(req.query.start);
     	}
-    	sa.song(sd,tid,tnr).then(r=>{
+    	sa.song(io,sd,tid,tnr).then(r=>{
     		res.send(r);
     	});
     })

@@ -1,3 +1,15 @@
 .blocky{
 	display:block;
+	background:#fff;
+}
+
+body{
+	background:url('https://lorempixel.com/1000/1000/nightlife');
+	background-attachment:fixed;
+	background-repeat: no-repeat;
+	background-size: 110vw 110vh;
+}
+canvas{
+	background:#fff;
+	padding:3px;
 }

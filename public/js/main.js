@@ -1,4 +1,5 @@
-const app = angular.module('musStatApp', ['chart.js'])
+const socket = io(),
+ app = angular.module('musStatApp', ['chart.js'])
     .controller('musCtrl', ($scope, $http) => {
         $scope.getSongData = () => {
             const thedate = `${$scope.musParams.date.getFullYear()}-${$scope.musParams.date.getMonth()}-${$scope.musParams.date.getDate()}`;
@@ -19,10 +20,24 @@ const app = angular.module('musStatApp', ['chart.js'])
                 console.log('CHART STUFF!', $scope.chartStuff)
             })
         }
+        socket.on('beginSA',function(){
+        	$scope.musParams.status = 'Beginning analysis...'
+        })
+        socket.on('tagsSA',function(){
+        	$scope.musParams.status = 'Getting tags...'
+        })
+        socket.on('sortSA',function(){
+        	$scope.musParams.status = 'Sorting tags...'
+        })
+        socket.on('organizeSA',function(){
+        	$scope.musParams.status = 'Packaging Data...'
+        })
+
         $scope.musParams = {
             date: new Date(),
             timedelta: 1,
-            totalreads: 20
+            totalreads: 20,
+            status:null
         }
         $scope.chartStuff = {
             options: {
