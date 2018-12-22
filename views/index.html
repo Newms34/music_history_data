@@ -48,8 +48,11 @@
             </div>
         </div>
     </div>
+    <div style="position: relative; left:1vw; width:98vw">
+      
     <canvas id="line" class="chart chart-line" chart-data="chartStuff.data" chart-labels="chartStuff.labels" chart-options="chartStuff.options" chart-series="chartStuff.series" chart-colors="chartStuff.colors" ng-show='chartStuff.data'>
     </canvas>
+    </div>
     <div class="modal" ng-class='{"is-active":explaining}'>
         <!-- the modal view-student-exercise window -->
         <div class="modal-background" ng-click='explaining=false'></div>

@@ -1,35 +1,40 @@
 const request = require('request'),
-    bb = require('billboard-top-100').getChart
-Deferred = require('promise-defer')
+    bb = require('billboard-top-100').getChart,
+    Deferred = require('promise-defer')
 _ = require('lodash'),
     q = require('q'),
-    dates = [],
     fs = require('fs'),
     xlsx = require('node-xlsx').default;
 let startDate = new Date(2016, 12, 1),
-	oneYear = 1000*3600*24*365.25,
+    dates = [],
+    oneYear = 1000 * 3600 * 24 * 365.25,
     timeDelta = 1000 * 3600 * 24 * 365.25 * 2.5, //our time duration
     totalNumReads = 20,
     totalDates = 0,
-    fullProm = null, lfm=null;
-    io=null;
+    fullProm = null,
+    lfm = null,
+    tooManyDates = false,
+    io = null;
 String.prototype.normalize = function() {
     return this.toLowerCase().trim();
 }
-if(fs.existsSync('./keys.json')){
-	// console.log('keys exists!',fs.readFileSync('./keys.json','utf-8'))
-	lfm = JSON.parse(fs.readFileSync('./keys.json','utf8')).lastfm;
-}else{
-	lfm = process.env.LFM
+if (fs.existsSync('./keys.json')) {
+    // console.log('keys exists!',fs.readFileSync('./keys.json','utf-8'))
+    lfm = JSON.parse(fs.readFileSync('./keys.json', 'utf8')).lastfm;
+} else {
+    lfm = process.env.LFM
 }
 
 const doSongAnalysis = (ioi, sd, tid, tnr) => {
-	io = ioi;
+    io = ioi;
+    dates = [];
     startDate = !!sd && sd instanceof Date ? sd : startDate;
-    timeDelta = tid && !isNaN(tid) ? tid*oneYear : timeDelta;
+    timeDelta = tid && !isNaN(tid) ? tid * oneYear : timeDelta;
     totalNumReads = tnr && !isNaN(tnr) ? tnr : totalNumReads;
+    fullProm = null;
+    totalDates = 0;
     console.log('BEGINNING SONG ANALYSIS', typeof startDate, startDate instanceof Date, startDate, timeDelta, totalNumReads, sd, tid, tnr)
-    io.emit('beginSA',{})
+    io.emit('beginSA', {x:true})
     fullProm = Deferred();
     for (let i = 0; i < totalNumReads; i++) {
         let currDate = new Date(startDate - (i * timeDelta)),
@@ -51,7 +56,14 @@ const doSongAnalysis = (ioi, sd, tid, tnr) => {
         })
     }
     // console.log('DATES',dates)
+    let origDateLen = dates.length;
+    dates = dates.filter(t=>{
+    	console.log(t.date)
+    	return new Date(t.date).getFullYear()>1957;
+    })
     totalDates = dates.length;
+    tooManyDates = origDateLen==totalDates;
+    console.log('totalDates',totalDates,dates.map(t=>t.date))
     dates.forEach(dt => {
         let theDate = dt.date;
         bb('hot-100', dt.date, function(err, sngs) {
@@ -63,7 +75,7 @@ const doSongAnalysis = (ioi, sd, tid, tnr) => {
             }
             thisDateObj.gotData = true;
             if (Array.isArray(sngs)) {
-            	//only take the top 10 artists per
+                //only take the top 10 artists per
                 thisDateObj.artists = _.uniqBy(sngs, s => s.artist).sort((a, b) => {
                     return parseInt(a.rank) - parseInt(b.rank);
                 }).slice(0, 10).map(ta => {
@@ -73,7 +85,7 @@ const doSongAnalysis = (ioi, sd, tid, tnr) => {
             }
             if (dates.filter(t => !!t.gotData).length == dates.length) {
                 // console.log('Got songs! Time to get tags!')
-                io.emit('tagsSA',{})
+                io.emit('tagsSA', {x:true})
                 getTags(dates);
             }
         })
@@ -104,7 +116,7 @@ const getTags = dts => {
                 if (artistTags.length == totalArtists.length) {
                     // fs.writeFileSync('out.json',JSON.stringify(artistTags),'utf-8')
                     // got all our doots!
-                    io.emit('sortSA',{})
+                    io.emit('sortSA', {x:true})
                     // console.log('got tags! time to sort')
                     sortTags(dts, artistTags);
                 }
@@ -202,21 +214,23 @@ at this point, we have 'atg', which is a single tag for an artist
         // allTags.unshift({ name: 'Date' })
         // makeChart(allTags, tagPop);
         console.log('DONE! Resolving')
-        io.emit('organizeSA',{})
+        io.emit('organizeSA', {x:true})
         const musData = {};
-        allTags.forEach((tg,i)=>{
-        	//DATA: need one subarray per tag, NOT one subarray per date
-        	//for every tag, make an array of tagPop at that index +1
-        	let thisArr = [],j=0;
-        	for (j=0;j<tagPop.length;j++){
-        		thisArr.push(tagPop[j][i+1])
-        	}
-        	musData[tg.name]=thisArr.reverse();
+        allTags.forEach((tg, i) => {
+            //DATA: need one subarray per tag, NOT one subarray per date
+            //for every tag, make an array of tagPop at that index +1
+            let thisArr = [],
+                j = 0;
+            for (j = 0; j < tagPop.length; j++) {
+                thisArr.push(tagPop[j][i + 1])
+            }
+            musData[tg.name] = thisArr.reverse();
         })
         fullProm.resolve({
-            musData:musData,
-            dates:tagPop.map(t=>t[0]).reverse(),
-            tags:allTags.map(tn=>tn.name)
+            musData: musData,
+            dates: tagPop.map(t => t[0]).reverse(),
+            tags: allTags.map(tn => tn.name),
+            tmd:tooManyDates
         });
     }
 

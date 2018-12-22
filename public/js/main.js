@@ -17,22 +17,30 @@ const socket = io(),
                         borderWidth: 3
                     }
                 });
+                if(!!r.data.tmd){
+                	alert('Warning! Billboard Hot-100™ only goes back to 1958. Dates before then are not included.')
+                }
                 console.log('CHART STUFF!', $scope.chartStuff)
             })
         }
         socket.on('beginSA',function(){
         	$scope.musParams.status = 'Beginning analysis...'
+        	$scope.$digest();
         })
         socket.on('tagsSA',function(){
         	$scope.musParams.status = 'Getting tags...'
+        	$scope.$digest();
         })
         socket.on('sortSA',function(){
         	$scope.musParams.status = 'Sorting tags...'
+        	$scope.$digest();
         })
         socket.on('organizeSA',function(){
         	$scope.musParams.status = 'Packaging Data...'
+        	$scope.$digest();
         	setTimeout(function(){
         		$scope.musParams.status=null;
+        		$scope.$digest();
         	},2000)
         })
 
@@ -58,7 +66,8 @@ const socket = io(),
                 		// console.log('THIS ITEM:',r)
                 		return true;
                 	}
-                }
+                },
+                responsive:true
             }
         };
     })
