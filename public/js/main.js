@@ -31,6 +31,9 @@ const socket = io(),
         })
         socket.on('organizeSA',function(){
         	$scope.musParams.status = 'Packaging Data...'
+        	setTimeout(function(){
+        		$scope.musParams.status=null;
+        	},2000)
         })
 
         $scope.musParams = {
