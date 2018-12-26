@@ -3,8 +3,12 @@ const socket = io(),
     .controller('musCtrl', ($scope, $http) => {
         $scope.getSongData = () => {
             const thedate = `${$scope.musParams.date.getFullYear()}-${$scope.musParams.date.getMonth()}-${$scope.musParams.date.getDate()}`;
-            console.log($scope.musParams, `/song?start=${thedate}&timedelta=${$scope.musParams.timedelta}&totalreads=${$scope.musParams.totalreads}`);
-            $http.get(`/song?start=${thedate}&timedelta=${$scope.musParams.timedelta}&totalreads=${$scope.musParams.totalreads}`).then(r => {
+            let rTagList = null;
+            // console.log($scope.musParams, `/song?start=${thedate}&timedelta=${$scope.musParams.timedelta}&totalreads=${$scope.musParams.totalreads}`);
+            if($scope.musParams.rTags){
+                rTagList = $scope.musParams.rTags.split(',').map(q=>q.trim()).join(',');
+            }
+            $http.get(`/song?start=${thedate}&timedelta=${$scope.musParams.timedelta}&totalreads=${$scope.musParams.totalreads}&rtags=${rTagList}`).then(r => {
                 console.log(r);
                 $scope.chartStuff.labels = r.data.dates;
                 $scope.chartStuff.data = r.data.tags.map(tg=>r.data.musData[tg])
@@ -48,7 +52,8 @@ const socket = io(),
             date: new Date(),
             timedelta: 1,
             totalreads: 20,
-            status:null
+            status:null,
+            rTags:null
         }
         $scope.chartStuff = {
             options: {

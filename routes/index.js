@@ -17,12 +17,24 @@ module.exports = function(io) {
     	let sd = null,
     	tid = req.query.timedelta||null,
     	tnr = req.query.totalreads||null;
+        rt = (req.query.rtags && req.query.rtags.split(','))||null;
     	if(req.query.start && !isNaN(new Date(req.query.start).getTime())){
     		sd = new Date(req.query.start);
     	}
-    	sa.song(io,sd,tid,tnr).then(r=>{
+    	sa.song(io,sd,tid,tnr,rt).then(r=>{
     		res.send(r);
     	});
+    })
+    router.get('/test',(req,res,next)=>{
+        let sd = null,
+        tid = 2,
+        tnr = 30;
+        if(req.query.start && !isNaN(new Date(req.query.start).getTime())){
+            sd = new Date(req.query.start);
+        }
+        sa.song(io,sd,tid,tnr).then(r=>{
+        });
+        res.send('done');
     })
     router.get('*', function(req, res, next) {
         console.log('trying to get main page!')

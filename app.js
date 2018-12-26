@@ -95,6 +95,6 @@ app.use(function(req, res, next) {
 });
 app.use(function(err, req, res, next) {
     res.status(err.status || 500);
-    console.log('Client (probly) err:', err)
+    console.log('ERR:', err)
     res.send('Error!' + err)
 });

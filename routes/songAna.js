@@ -1,7 +1,7 @@
 const request = require('request'),
     bb = require('billboard-top-100').getChart,
-    Deferred = require('promise-defer')
-_ = require('lodash'),
+    Deferred = require('promise-defer'),
+    _ = require('lodash'),
     q = require('q'),
     fs = require('fs'),
     xlsx = require('node-xlsx').default;
@@ -25,7 +25,7 @@ if (fs.existsSync('./keys.json')) {
     lfm = process.env.LFM
 }
 
-const doSongAnalysis = (ioi, sd, tid, tnr) => {
+const doSongAnalysis = (ioi, sd, tid, tnr,inTags) => {
     io = ioi;
     dates = [];
     startDate = !!sd && sd instanceof Date ? sd : startDate;
@@ -33,8 +33,8 @@ const doSongAnalysis = (ioi, sd, tid, tnr) => {
     totalNumReads = tnr && !isNaN(tnr) ? tnr : totalNumReads;
     fullProm = null;
     totalDates = 0;
-    console.log('BEGINNING SONG ANALYSIS', typeof startDate, startDate instanceof Date, startDate, timeDelta, totalNumReads, sd, tid, tnr)
-    io.emit('beginSA', {x:true})
+    console.log('BEGINNING SONG ANALYSIS', typeof startDate, startDate instanceof Date, startDate, timeDelta, totalNumReads, sd, tid, tnr,inTags)
+    io.emit('beginSA', { x: true })
     fullProm = Deferred();
     for (let i = 0; i < totalNumReads; i++) {
         let currDate = new Date(startDate - (i * timeDelta)),
@@ -57,13 +57,13 @@ const doSongAnalysis = (ioi, sd, tid, tnr) => {
     }
     // console.log('DATES',dates)
     let origDateLen = dates.length;
-    dates = dates.filter(t=>{
-    	console.log(t.date)
-    	return new Date(t.date).getFullYear()>1957;
+    dates = dates.filter(t => {
+        // console.log(t.date)
+        return new Date(t.date).getFullYear() > 1957;
     })
     totalDates = dates.length;
-    tooManyDates = origDateLen==totalDates;
-    console.log('totalDates',totalDates,dates.map(t=>t.date))
+    tooManyDates = origDateLen == totalDates;
+    // console.log('totalDates',totalDates,dates.map(t=>t.date))
     dates.forEach(dt => {
         let theDate = dt.date;
         bb('hot-100', dt.date, function(err, sngs) {
@@ -85,18 +85,19 @@ const doSongAnalysis = (ioi, sd, tid, tnr) => {
             }
             if (dates.filter(t => !!t.gotData).length == dates.length) {
                 // console.log('Got songs! Time to get tags!')
-                io.emit('tagsSA', {x:true})
-                getTags(dates);
+                io.emit('tagsSA', { x: true })
+                console.log('inTags',inTags)
+                getTags(dates,inTags);
             }
         })
     });
     return fullProm.promise;
 }
 
-const getTags = dts => {
+const getTags = (dts,reqtags) => {
         const totalArtists = _.uniq(_.flatten(dts.map(t => t.artists))),
             artistTags = [];
-        // console.log('ALL ARTISTS', totalArtists)
+        console.log('ALL ARTISTS', totalArtists)
         totalArtists.forEach(at => {
             let theArt = at,
                 theUrl = `http://ws.audioscrobbler.com/2.0/?method=artist.gettoptags&artist=${encodeURIComponent(at)}&api_key=${lfm}&format=json&autocorrect=1`;
@@ -106,7 +107,7 @@ const getTags = dts => {
                     tags: null
                 }
                 // console.log('ARTIST',theArt,'RESP',!!resp.body,'toptags',!!resp.body.toptags,'tag',!!resp.body.toptags.tag)
-                console.log('ARTIST', theArt, 'ERR?', err)
+                // console.log('ARTIST', theArt, 'ERR?', err)
                 if (JSON.parse(resp.body) && JSON.parse(resp.body).toptags && JSON.parse(resp.body).toptags.tag && JSON.parse(resp.body).toptags.tag.length) {
                     newArtObj.tags = _.cloneDeep(JSON.parse(resp.body).toptags.tag)
                 } else {
@@ -116,14 +117,14 @@ const getTags = dts => {
                 if (artistTags.length == totalArtists.length) {
                     // fs.writeFileSync('out.json',JSON.stringify(artistTags),'utf-8')
                     // got all our doots!
-                    io.emit('sortSA', {x:true})
+                    io.emit('sortSA', { x: true })
                     // console.log('got tags! time to sort')
-                    sortTags(dts, artistTags);
+                    sortTags(dts, artistTags,reqtags);
                 }
             })
         })
     },
-    sortTags = (dateList, tagList) => {
+    sortTags = (dateList, tagList,rqtags) => {
         //dateList = list of dates where each date currently has a date and and popular artists
         //tagList = list of tags by artist
         let tagPop = [],
@@ -181,9 +182,26 @@ at this point, we have 'atg', which is a single tag for an artist
             })
             dl.tags = dl.tags.sort((a, b) => b.count - a.count);
         });
+        //clip tags to only most popular 20
+        let allOrigTags = _.cloneDeep(allTags);
         allTags = allTags.sort((a, b) => {
             return b.count - a.count;
         }).slice(0, 20);
+        console.log("REQ TAGS",rqtags)
+        if (rqtags && Array.isArray(rqtags) && rqtags.length){
+            let tagsToAdd = [];
+            rqtags.forEach(tg=>{
+                let aot = allOrigTags.find(tf=>tf.name==tg);
+                if(!!aot){
+                    // console.log('TAG',tg,'EXISTS!')
+                    tagsToAdd.push(aot);
+                }else{
+                    // console.log('TAG',tg,'MISSING')
+                }
+            });
+            allTags = allTags.slice(0,allTags.length-tagsToAdd.length).concat(tagsToAdd);
+        }
+        console.log('after (possible) required tags, taglist is',allTags)
         let allDates = dateList.map(dld => dld.date);
         allDates.forEach(ad => {
             let thisTagPopList = new Array(allTags.length).fill(0); //create a new array to hold ALL tag popularity values for this week, with one spot for each tag.
@@ -214,7 +232,7 @@ at this point, we have 'atg', which is a single tag for an artist
         // allTags.unshift({ name: 'Date' })
         // makeChart(allTags, tagPop);
         console.log('DONE! Resolving')
-        io.emit('organizeSA', {x:true})
+        io.emit('organizeSA', { x: true })
         const musData = {};
         allTags.forEach((tg, i) => {
             //DATA: need one subarray per tag, NOT one subarray per date
@@ -230,15 +248,9 @@ at this point, we have 'atg', which is a single tag for an artist
             musData: musData,
             dates: tagPop.map(t => t[0]).reverse(),
             tags: allTags.map(tn => tn.name),
-            tmd:tooManyDates
+            tmd: tooManyDates
         });
     }
-
-const makeChart = (tags, allData) => {
-    const data = [tags.map(t => t.name)].concat(allData)
-    var buffer = xlsx.build([{ name: "tagPopularity", data: data }]); // Returns a buffer
-    fs.writeFileSync('out.xlsx', buffer);
-}
 
 module.exports = {
     song: doSongAnalysis

@@ -39,6 +39,12 @@
                         <input type="number" ng-model='musParams.totalreads'>
                     </p>
                 </div>
+                <div class="column is-one-fifth is-size-5 notification col-style-two">Required Tags</div>
+                <div class="column is-four-fifths">
+                    <p class="control">
+                        <textarea class='textarea' ng-model='musParams.rTags' placeholder='Required tags, separated by comma'></textarea>
+                    </p>
+                </div>
                 <div class="is-full has-text-centered">
                     <button class="button is-link is-large" ng-show='!musParams.status' ng-click='getSongData()'><i class="fa fa-music"></i>&nbsp;Get Music Data</button>
                     <div class="notification is-full" ng-show='musParams.status'>{{musParams.status}}</div>
